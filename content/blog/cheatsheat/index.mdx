@@ -171,13 +171,13 @@ Paragraph:
 
     ---------------------------------------
 
-This is [an example](http://example.com "Example") link.
+This is [an example](http://example.com 'Example') link.
 
 [This link](http://example.com) has no title attr.
 
 This is [an example][id] reference-style link.
 
-[id]: http://example.com "Optional Title"
+[id]: http://example.com 'Optional Title'
 
     This is [an example](http://example.com "Example") link.
 
@@ -207,11 +207,11 @@ This paragraph has some `code` in it.
 
     This paragraph has some `code` in it.
 
-![Alt Text](https://placehold.it/200x50 "Image Title")
+![Alt Text](https://placehold.it/200x50 'Image Title')
 
     ![Alt Text](https://placehold.it/200x50 "Image Title")
 
-import SpotifyPlayer from "./SpotifyPlayer";
+import SpotifyPlayer from './SpotifyPlayer'
 
 Here will a React component go:
 
@@ -226,9 +226,9 @@ Here will a live code example go:
 
 ```js react-live
 const onClick = () => {
-  alert("You opened me");
-};
-render(<button onClick={onClick}>Alohomora!</button>);
+  alert('You opened me')
+}
+render(<button onClick={onClick}>Alohomora!</button>)
 ```
 
 Here will a normal code block go:
@@ -269,25 +269,25 @@ A code block with a JSDoc comment, short, and long comment:
  */
 const getValue = (input, rootFontSize = 16) => {
   if (typeof input === `number`) {
-    return input / rootFontSize;
+    return input / rootFontSize
   }
 
-  const isPxValue = input.slice(-2) === `px`;
+  const isPxValue = input.slice(-2) === `px`
 
   if (isPxValue) {
-    return parseFloat(input.slice(0, -2));
+    return parseFloat(input.slice(0, -2))
   }
 
-  return parseFloat(input.slice(0, -3));
-};
+  return parseFloat(input.slice(0, -3))
+}
 
 // This is a little helper function
-const helper = (a, b) => a + b;
+const helper = (a, b) => a + b
 
 // This is also a little helper function but this time with a really long one-line comment that should show some more details
-const morehelper = (a, b) => a * b;
+const morehelper = (a, b) => a * b
 
-export { getValue, helper, morehelper };
+export { getValue, helper, morehelper }
 ```
 
 Normal block without language:
@@ -307,7 +307,7 @@ export default Layout
 Code block with code highlighting:
 
 ```jsx:title=src/components/post.jsx {5-7,10}
-import React from "react";
+import React from 'react'
 
 const Post = ({ data: { post } }) => (
   <Layout>
@@ -334,15 +334,15 @@ const Post = ({ data: { post } }) => (
       sx={{
         ...CodeStyles,
         my: 5,
-        ".gatsby-resp-image-wrapper": { my: 5, boxShadow: `lg` },
+        '.gatsby-resp-image-wrapper': { my: 5, boxShadow: `lg` },
       }}
     >
       <MDXRenderer>{post.body}</MDXRenderer>
     </section>
   </Layout>
-);
+)
 
-export default Post;
+export default Post
 ```
 
 Code block without title:
@@ -378,11 +378,11 @@ const scream = (input) => window.alert(input)
 Line highlighting without code title:
 
 ```js {2,4-5}
-const test = 3;
-const foo = "bar";
-const harry = "potter";
-const hermione = "granger";
-const ron = "weasley";
+const test = 3
+const foo = 'bar'
+const harry = 'potter'
+const hermione = 'granger'
+const ron = 'weasley'
 ```
 
 Here will `inline code` go, just inside the text. Wow!
@@ -390,10 +390,10 @@ Here will `inline code` go, just inside the text. Wow!
 Code block without line numbers but with highlighting, language, and title:
 
 ```tsx:title=src/components/blog.tsx {7-9,16} noLineNumbers
-import React from "react";
+import React from 'react'
 
 const Blog = ({ posts }: PostsProps) => {
-  const { tagsPath, basePath } = useSiteMetadata();
+  const { tagsPath, basePath } = useSiteMetadata()
 
   return (
     <Layout>
@@ -411,8 +411,8 @@ const Blog = ({ posts }: PostsProps) => {
       </Flex>
       <Listing posts={posts} sx={{ mt: [4, 5] }} />
     </Layout>
-  );
-};
+  )
+}
 
-export default Blog;
+export default Blog
 ```

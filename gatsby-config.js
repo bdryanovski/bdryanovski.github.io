@@ -14,6 +14,13 @@ module.exports = {
   },
   plugins: [
     {
+      resolve: 'gatsby-plugin-draft',
+      options: {
+        nodeType: 'Mdx',
+        publishDraft: process.env.NODE_ENV !== 'production',
+      },
+    },
+    {
       resolve: `gatsby-source-filesystem`,
       options: {
         path: `${__dirname}/content/blog`,

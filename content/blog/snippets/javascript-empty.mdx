@@ -1,0 +1,51 @@
+---
+title: "JavaScript: is something empty?"
+date: 2021-01-13
+slug: "/snippets/javascript/is-something-empty"
+tags:
+  - snippet
+---
+
+Often the question is is something empty ? And what is empty really? The quick answer is
+empty is what we decide to be empty. The function below, the standart Array and Object are just
+tested to see if they have entries or keys. But for example boolean and numbers they are not empty
+they always have some value, so we decide what value is empty and what not.
+
+So said like that, everything bigger than 0 is not empty, `true` and `false` are empty.
+
+The method below don't handle `Set`, `Map`, `WeakMap`.
+```js
+function empty(value) {
+  return (
+    (value === undefined || value === null)
+    || (typeof value === 'number' && value <= 0)
+    || (Array.isArray(value) && value.length === 0)
+    || (typeof value === 'object' && Object.keys(value).length === 0)
+  )
+}
+```
+
+In addation to that we need to add some test to make sure everything will
+continue to work:
+
+```js
+describe('empty', () => {
+  it('should check value and find is it empty or not', () => {
+    [
+      [true, []],
+      [false, [2]],
+      [true, {}],
+      [false, { foo: 1 }],
+      [true, null],
+      [true, undefined],
+      [false, true],
+      [false, false],
+      [false, 1],
+      [false, 5],
+      [true, 0]
+    ].forEach(([expectedType, value]) => {
+      expect(empty(value)).toBe(expectedType)
+    })
+  })
+})
+```

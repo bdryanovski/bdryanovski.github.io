@@ -1,0 +1,68 @@
+---
+title: "JavaScript: find the types of a variables"
+date: 2021-01-12
+slug: "/snippets/javascript/find-the-type-of-variable"
+tags:
+  - snippet
+---
+
+Often I need to find what is the type of given variable so I could
+decide how to handle it or what methods I may expect. At the same time using
+`typeof` is not always the solution we need. For example `typeof []` will return
+`object` that is because arrays are extended objects but it's not what we want to get.
+
+There is `Array.isArray([])` that will return boolean but again we need to check for
+multiple types.
+
+Function below gonna returning string value of the passed variable:
+```js
+function type(value) {
+  return Object.prototype.toString
+    .call(value)
+    .replace(/\[object |\]/gi,'')
+    .toLowerCase();
+}
+```
+
+I'm going with `.toLowerCase()` just to not relay on capital latters when comparing types.
+After all we are working with exact string matching later on.
+
+Let's write a test about it to be sure that everything is as expected:
+```js
+describe('type', () => {
+  it('should return the correct type', () => {
+    [
+      ['map', new Map()],
+      ['set', new Set()],
+      ['weakmap', new WeakMap()],
+      ['object', {}],
+      ['string', 'Hello'],
+      ['array', []],
+      ['boolean', true],
+      ['number', 5],
+      ['function', () => {}],
+      ['date', new Date()],
+      ['generatorfunction', function* generator() {}],
+    ].forEach(([expectedType, value]) => {
+      expect(type(value)).toBe(expectedType)
+    })
+  })
+})
+```
+The test is not very extensiv or cover all posible cases but still - show that in most common cases
+it's working.
+
+In the cases where we need to accept for example two or more types, now there is a simple way of checking them
+without writing multiple `if`:
+
+```js
+function oneOfType(value, types) {
+  return (types || []).includes(type(value))
+}
+
+const foo = 'must-be-string'
+
+if (oneOfType(foo, ['string', 'array'])) {
+  console.log(foo.length)
+}
+```

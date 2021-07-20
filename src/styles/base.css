@@ -1,0 +1,75 @@
+html {
+  color: #cbd5e0;
+}
+
+body {
+  color: #cbd5e0;
+  background-color: #1a202c;
+  font-family: "IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+  line-height: 1.625;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,h2, h3,h4, h5, h6 {
+  box-sizing: border-box;
+  min-width: 0px;
+  font-family: inherit;
+  margin: 2.5rem 0px 1rem 0rem;
+  color: #fbfbfb;
+}
+
+h1 {
+  font-weight: 700;
+  line-height: 1.25;
+  font-size: 2.25rem;
+  margin: 2.5rem 0px 1rem 0rem;
+}
+
+blockquote {
+  border-left-color: #f7df1e;
+  border-left-style: solid;
+  border-left-width: 6px;
+  margin-left: 0px;
+  margin-right: 0px;
+  padding-left: 2rem;
+  color: #cbd5e0;
+}
+
+blockquote p {
+  font-style: italic;
+  font-size: 1rem;
+  letter-spacing: -0.003em;
+  line-height: 1.625;
+  --baseline-multiplier: 0.179;
+  --x-height-multiplier: 0.35;
+  word-break: break-word;
+}
+
+table {
+  border-color: #cbd5e0;
+}
+
+p code {
+  color: black;
+  background-color: #f7df1e;
+  padding: 0.10rem 0.25rem;
+  border-radius: 5px;
+}
+
+p code:hover {
+  background-color: #f1e691;
+}
+
+.list-post a {
+  color: white;
+}
+
+.pagging a {
+  color: white;
+}
+
+hr {
+  background: white
+}

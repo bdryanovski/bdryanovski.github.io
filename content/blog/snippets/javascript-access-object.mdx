@@ -1,0 +1,157 @@
+---
+title: "JavaScript: Read and Write object value from string path"
+date: 2021-07-22
+slug: "/snippets/javascript/read-write-javascript-object"
+draft: true
+tags:
+  - snippet
+---
+
+In the case when we want to work with complex objects and read or write value in it without
+loops or `if-else`. And saing write, because if you try to access property of the object that don't
+exist, it will be created.
+
+```js
+let test = {}
+ObjectUtil.set(test, 'foo.bar', 2);
+
+// test = { foo: { bar: 2 } }
+```
+
+The working code is below. It pretty simple as you can see.
+The `get` method try to traverse the object by given string path and return the value if any.
+`set` is a bit different, it will go and try to recreate it if missing.
+
+```js:title=object-util.js
+
+// We need a quick way to check what type of data we gonna use
+function type(value) {
+  return Object.prototype.toString
+    .call(value)
+    .replace(/\[object |\]/gi,'')
+    .toLowerCase();
+}
+
+const ObjectUtil = {
+  get: function get(target, path) {
+    if (path.includes('.')) {
+      const par = this.parent(target, path);
+      if (['object', 'array'].includes(type(par))) {
+        return par[path.split('.').pop()];
+      }
+    }
+
+    return target[path];
+  },
+
+  set: function set(target, path, value) {
+    if (path.includes('.')) {
+      const par = this.parent(target, path, true);
+      if (par && 'object' === type(par)) {
+        par[path.split('.').pop()] = value;
+      }
+      return;
+    }
+
+    target[path] = val;
+  },
+
+  parent: function parent(target, key, init) {
+    if (key.includes('.')) {
+      const pieces = key.split('.');
+      let ret = target;
+
+      for (let i = 0; i < pieces.length - 1; i++) {
+        // if the key is a number string and parent is an array
+        if (Number(pieces[i]) === Number(pieces[i]) && 'array' === type(ret)) {
+          ret = ret[pieces[i]];
+        } else if ('object' === type(ret)) {
+          if (init && !ret.hasOwnProperty(pieces[i])) {
+            ret[pieces[i]] = {};
+          }
+          if (ret) {
+            ret = ret[pieces[i]];
+          }
+        }
+      }
+
+      return ret;
+    }
+    return target;
+  }
+};
+```
+
+So as always we need to have some unit-tests to prove that our code will do it's job over time.
+The tests below are not design to catch all cases but to cover some basics, we could always go
+and right a lot more as we go.
+
+```js:title=object-util.spec.js
+describe('ObjectUtil', () => {
+  let obj;
+
+  beforeEach(() => {
+    obj = {
+      name: {
+        first: 'tobi'
+      },
+      pets: [
+        { id: 1, name: 'loki' },
+        { id: 2, name: 'jane' }
+      ]
+    };
+  })
+
+  describe('get', () => {
+    it('should work with simple keys', () => {
+      expect(ObjectUtil.get(obj, 'name')).toBe(obj.name);
+    });
+
+    it('should work with nested keys', () => {
+      expect(ObjectUtil.get(obj, 'name.first')).toBe(obj.name.first);
+    });
+
+    it('should work with array indexes', () => {
+      expect(ObjectUtil.get(obj, 'pets.1')).toBe(obj.pets[1]);
+      expect(ObjectUtil.get(obj, 'pets.1.name')).toBe(obj.pets[1].name);
+    });
+  });
+
+  describe('parent', () => {
+
+    it('should get the parent', () => {
+      expect(ObjectUtil.parent(obj, 'name')).toBe(obj);
+      expect(ObjectUtil.parent(obj, 'name.first')).toBe(obj.name);
+    });
+
+    it('should get the parent array', () => {
+      expect(ObjectUtil.parent(obj, 'pets.1')).toBe(obj.pets);
+    });
+
+    it('should get the parent array item', () => {
+      expect(ObjectUtil.parent(obj, 'pets.1.name')).toBe(obj.pets[1]);
+    });
+
+    it('should initialize the path', () => {
+      const ret = ObjectUtil.parent(obj, 'a.b.c.d', true);
+      expect(ret).toBe(obj.a.b.c);
+    });
+  });
+
+  describe('set', () => {
+    const obj = {};
+
+    it('should set value', () => {
+      ObjectUtil.set(obj, 'name.first', 'tobi');
+      ObjectUtil.set(obj, 'name.last', 'tobo');
+      expect(obj).toEqual({
+        name: {
+          first: 'tobi',
+          last: 'tobo'
+        }
+      });
+    });
+  });
+
+});
+```

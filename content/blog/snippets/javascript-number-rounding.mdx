@@ -1,0 +1,41 @@
+---
+title: "JavaScript: Number rounding"
+date: 2021-07-21
+slug: "/snippets/javascript/number-rounding"
+tags:
+  - snippet
+  - math
+---
+
+So to be able to round a number in JavaScript I found that this is the best and easy way. This way
+I don't have to convert the `Number` to `String` to cut some digits and the transform it back to `Number`
+
+```js
+/**
+ *  @param value - number - Number to round
+ *  @param decimals - number - how many digits after the `.`
+ *  @return number
+ */
+function round(value, decimals) {
+  return Number(Math.round(`${value}e${decimals}`) + 'e-' + decimals);
+}
+```
+
+To prove it, here is a test for it
+```js
+describe('Number rounding', () => {
+  it('should return expected value', () => {
+    [
+      [2.1234, 2.12, 2],
+      [2.125, 2.13, 2],
+      [2.11111, 2.11, 2],
+      [2.11115, 2.1112, 4],
+      [2.123, 2, 0],
+      [2.123, NaN, 0],
+      ["2.123", 2.12, 2]
+    ].forEach(([value, expectedValue, decimals]) => {
+      expect(round(value, decimals)).toBe(expectedValue)
+    })
+  })
+})
+```

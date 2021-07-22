@@ -1,0 +1,86 @@
+---
+title: "Design Monorepo as a big project"
+date: 2021-07-22
+slug: "/posts/design-monorepo"
+draft: true
+tags:
+  - post
+  - monorepo
+---
+
+Designing Monorepo as a big project is a challenge. It's a lot of work and a lot of things to keep in mind.
+And this is a blog post to help you to keep track of the process. I'm not saying that this is the best way to do it, but I'm trying to keep it simple.
+And for good or bad this is a good starting point. This is working for me today and probably will change in the future. As always in
+software development things change over night.
+
+I gonna use few Open Source tools to help me automate some of the process but will also modify them in a way to suit my needs.
+This as mention above is opinionated view so feel free to experiment with it.
+
+So let's start by defining our expectation and requirements and later on we gonna see how we could achieve them.
+
+### Goals
+
+1. Organize the project as single repository and keep all the code in one place.
+2. Link multiple packages in the same repository. So we could split parts of the project in different packages.
+3. Keep the code in sync with the main repository. So we could have a single place to change the code and all the packages will be updated.
+4. Keep it DRY and reuse as muc as possible.
+5. Release packages without the need of releasing everything other package.
+6. Automate the process as much as possible. Expect to have easy `Getting started` workflow.
+
+Here are some additional goals that I have for my personal projects. I'm using `NPM` organizations to separate some of the packages so will have most of the time
+two or more namespaces.
+
+So I'm splitting them in the following way:
+  * Packages related to project that are not suitable anything else. In simple terms for example API package and frontend package (this is super simplified example)
+  * Packages that could be reused in other projects and there scope exceed the scope of the main project. For example package dealing with some specific functionality, like
+  converting Hex colors to RGBA colors.
+
+And we talk about packages I want to clarify something not all packages will be publish into the NPM repository - and if we think about it a little more - there is no need to that. The goals here is to be able to split the project into a lot small pieces that could be easily understand and truly reused. And in the same time think of them as standalone real packages - with there own semantic versioning, documentation, README, etc. So next time when you need to have the same code to create Linked List you just could
+go back and copy your greatest work (or at least the code that you think is the best), without the need to extract the how build/structure.
+
+### Getting started
+
+So both `yarn` and `npm` support workspaces. So we could create a workspace and install all the packages we need. And let the package manager to deal from where he could locate the package.
+
+Documentation:
+  * Yarn workspaces: https://yarnpkg.com/lang/en/docs/workspaces/
+  * NPM workspaces: https://docs.npmjs.com/cli/workspaces
+
+
+```json
+{
+  "private": true,
+  "workspaces": ["nextproject", "bdryanovski"]
+}
+```
+
+In my case `bdryanovski` workspace will be the packages that I want to publish overtime and will be reusable in other projects. This could be one or two packages but it's good way to keep them separated.
+
+So packages in `bdryanovski` will be named like that
+
+```js
+import { ConvertHexToRgba } from '@bdryanovski/colors'
+```
+
+And inside the `nextproject` we gonna namespace the packages like that
+
+```js
+import { Models } from '@nextproject/models'
+```
+
+
+### Projects structure
+
+I gonna talk more here about JavaScript, TypeScript project here but the rules and patterns are valid for any other package. So here are some rules to fallow.
+
+1. Packages must be standalone and should be publishable to NPM (Even if you don't publish them to NPM)
+2. All dependencies and version must be mention in the package.json
+3. Documentation must be in README.md
+4. MONOREPO.md must be in the root of the package (more on this later)
+5. Provide few basic commands that Lerna will use to manage the packages. Like `build`, `test`, `start` etc.
+6. We gonna consume only build packages. So we could use `yarn link` to link the packages if needed. (In the case of TypeScript we need to build it before we could use it, a bit slow but it's making sure that our code is working)
+
+In the case when we need to work with `ESlint` we gonna create a separate package with eslint configuration and use it in all other packages - this way we gonna force ourself to
+use the same rules in all packages.
+
+When it comes to TypeScript my suggestion here is to have a `tsconfig.json` into the root of the project and everything else to extend it. And by extending I'm meaning changing paths or adding additional types.

@@ -2,7 +2,7 @@
   "name": "blog",
   "private": true,
   "description": "BDryanovski blog",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "author": "Bozhidar Dryanovski",
   "bugs": {
     "url": "https://github.com/gatsbyjs/gatsby/issues"

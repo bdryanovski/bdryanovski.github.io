@@ -1,0 +1,261 @@
+---
+title: "Web Components: Build React components from Web Components"
+date: 2022-01-31
+slug: "/posts/build-react-components-from-web-components"
+draft: false
+tags:
+  - post
+  - webcomponent
+  - react
+---
+
+With the help of the `@custom-elements-manifest/analyzer` we could build a React component.
+This could be done by using the generated `custom-elements.json` as result of using the package from above. 
+
+So get started by installing the package:
+
+```bash
+npm i @custom-elements-manifest/analyzer --save-dev
+````
+
+To generate the `custom-elements.json` file you need to run the following command:
+
+```bash
+cem analyze --global='src/components/**/*.ts' --exclude='**/*.test.ts' --outdir=./
+```
+
+In the case when we use on of the libs mention here we need to add addtional flags to help and improve the generated
+output. For example LitElement have it's own flag `--litelement` or Stencil `--stencil`. More about the arguments
+can be found in the documentation of the `cem` command [here](https://www.npmjs.com/package/@custom-elements-manifest/analyzer).
+
+
+### Reading the generated `custom-elements.json` file
+
+```js 
+import { readFileSync } from 'fs'
+
+const CustomElementsManifest = JSON.parse(readFileSync('./custom-elements.json', 'utf8'));
+
+```
+
+Now based on this file we can create a React component - but first let's see what inside the manifest. Inside the main 
+`module` array we could see Objects that represent different custom elements (by file). There is the `path` of the file
+and `declarations` array with all the properties, methods and events for the element. Everything that we need to
+recreate the component in React.
+
+For example:
+```js 
+private bar = 'baz'
+```
+
+Will look like this inside the `declarations[0].members` array:
+
+```json 
+  {
+    "kind": "field",
+    "name": "bar",
+    "type": {
+      "text": "string"
+    },
+    "privacy": "private",
+    "default": "'baz'"
+  },
+```
+
+We could also find information about the events and tagName of the element.
+
+```json
+"declarations": [
+  "events": [
+    {
+      "name": "input-changed",
+      "type": {
+        "text": "Event"
+      }
+    }
+  ],
+  "tagName": "my-element"
+]
+```
+
+To simplify a little the process we gonna use another packaged called `@lit-labs/react` witch will help us 
+build the component by providing part of the declaration and the tagName.
+
+```js  
+import * as React from 'react';
+import { createComponent } from '@lit-labs/react';
+import Component from './path/to/component/my-element';
+
+export default createComponent(
+  React,
+  'my-element',
+  Component,
+  {
+    'onInputChanged': 'input-changed'
+  }
+);
+
+```
+
+And this above will be our React component. Now when we know how to make one we could automate this so we
+could generate all of them every time when we change the `custom-elements.json` file.
+
+
+```js
+/**
+ * Try to use as much as possible NodeJs dependencies to minimize the required packages.
+ */
+import fs from 'fs';
+import path from 'path';
+
+/** 
+  * Prittier will be used to format the generated code.
+  * This is not required but it will make the code more readable. Could be skipped.
+  */
+import prettier from 'prettier';
+
+// Location where the generated code will be saved.
+const DIST = './dist';
+
+// Prettier configuration (optional)
+const prettierConfig = {
+  arrowParens: 'avoid',
+  bracketSpacing: true,
+  htmlWhitespaceSensitivity: 'css',
+  insertPragma: false,
+  bracketSameLine: false,
+  jsxSingleQuote: false,
+  printWidth: 120,
+  proseWrap: 'preserve',
+  quoteProps: 'as-needed',
+  requirePragma: false,
+  semi: true,
+  singleQuote: true,
+  tabWidth: 2,
+  trailingComma: 'none',
+  useTabs: false
+};
+
+/**
+  * On every start of the script, remove the dist folder and recreate it again. 
+  * This way we don't have to worry about the dist folder getting dirty over time.
+  */
+fs.rmSync(DIST, {recursive: true, force: true});
+fs.mkdirSync(DIST, {recursive: true});
+
+/**
+  * Read the custom-elements.json file and parce the JSON output.
+  */
+const customEl = JSON.parse(fs.readFileSync('../components/dist/custom-elements.json', 'utf8'));
+
+/**
+  * Extract only the components that are customElements - this way we could skip other files 
+  * Like services, libs and so on.
+  */
+export function getAllComponents(data) {
+  const allComponents = [];
+  data.modules.map(module = {
+    module.declarations?.map(declaration => {
+      if (declaration.customElement) {
+        const component = declaration;
+        if (component) {
+          allComponents.push(Object.assign(component, {modulePath: module.path}));
+        }
+      }
+    });
+  });
+
+  return allComponents;
+}
+
+/**
+  * Convert a string into `PascalCase` - this way React will know how to handle events name
+  * for example: input-changed will become InputChanged and little below we could add the prefix of 'on'
+  * by the end it will be `onInputChanged`
+  */
+function pascalCase(value) {
+  return value
+    .replace(/\w+/g, function(w) {return w[0].toUpperCase() + w.slice(1).toLowerCase();})
+    .replace(/-/g, '');
+}
+
+// Keep a list of components so we could build an `index.ts` file with all of them at the end.
+const index = [];
+
+getAllComponents(customEl)
+  .map(component => {
+    /**
+      * WebComponents requrie to have some kind of prefix in front of tagName - in the example below is
+      * 'wc' - we gonna remove it for now.
+      */
+    const tagWithoutPrefix = component.tagName.replace(/^wc-/, '');
+    /**
+      * Component destination path 
+      */
+    const componentDir = path.join(DIST, tagWithoutPrefix);
+    fs.mkdirSync(componentDir, {recursive: true});
+
+    /**
+      * Template for the React component 
+      *
+      * @Note: Prettier here is optional this could be just a simple multiline string.
+      */
+    const source = prettier.format(
+      `
+      import * as React from 'react';
+      import { createComponent } from '@lit-labs/react';
+      import Component from './${component.modulePath.replace(/^src\//, '').replace(/\.ts$/, '')}';
+
+      export default createComponent(
+        React,
+        '${component.tagName}',
+        Component,
+        {
+          ${
+            (component.events || [])
+              .map(event => `${`on${pascalCase(event.name)}`}: '${event.name}'`)
+              .join(',\n')
+          }
+        }
+      );
+    `,
+      Object.assign(prettierConfig, {
+        parser: 'babel-ts'
+      })
+    );
+
+    /**
+      * Register the component as part of the files that we gonna want to export in the main `index.ts` file
+      */
+    index.push(`export { default as ${component.name} } from './${tagWithoutPrefix}';`);
+
+    /** 
+      * Write the component to the disk
+      */
+    fs.writeFileSync(
+      path.join(componentDir, 'index.ts'),
+      source,
+      'utf8'
+    );
+
+  });
+
+/**
+  * Generate the `index.ts` file
+  */
+fs.writeFileSync(
+  path.join(DIST, 'index.ts'),
+  index.join('\n'),
+  'utf8'
+);>
+```
+
+After running the script we must end up with a bunch of files in the `dist` folder. That are ready to be bundle into 
+a package. There two more things left to do before we could publish it.
+
+  * Add the `@lit-libs/react` to the `package.json` file as dependencie.
+  * Add the `react` and `react-dom` to the `devDependencies` in the package.json file as any normal React lib should do.
+
+The above script could be modifyed and used to generate a bunch of components no matter the framework. This is also a good way
+to generate static documentation for your components and have up to date information about them.
+

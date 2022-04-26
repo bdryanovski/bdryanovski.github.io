@@ -50,12 +50,16 @@ blockquote p {
 table {
   border-color: #cbd5e0;
 }
-
-p code {
+p code,
+h1 code,
+h2 code,
+h3 code,
+li code
+{
   color: black;
   background-color: #f7df1e;
-  padding: 0.10rem 0.25rem;
-  border-radius: 5px;
+  padding: 0.15rem 0.35rem;
+  border-radius: 2px;
 }
 
 p code:hover {
